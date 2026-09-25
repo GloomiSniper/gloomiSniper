@@ -1,5 +1,5 @@
 --[[
-  GLOOMI SNIPER V2 — Console Clear + MarvelScott1 Owner Detection + Bulletproof Dragging
+  GLOOMI SNIPER V2 — Console Clear + MarvelScott1 Owner + Bulletproof Dragging + Timed Announcement Tester
 ]]
 
 repeat task.wait() until game:IsLoaded()
@@ -15,9 +15,10 @@ _G.RiddleSolverEnabled = false
 _G.SammyFilterEnabled = true
 _G.SubmitAfterCount = 1
 _G.SubmitAttempts = 3
+_G.TestDelaySeconds = 0 -- Configurable delay timer for testing drops
 
--- Admin / Third Party Options (Optional startup vs button click)
-_G.AdminAutoLoad = false -- Set to true if you want it to load automatically every time the sniper loads
+-- Admin / Third Party Options
+_G.AdminAutoLoad = false
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -70,7 +71,7 @@ local captureMode = nil
 local captureUntil = 0
 local lastQueuedAt = 0
 
--- Third-party script loader function (Rainbow ESP / Track Brainrots)
+-- Third-party script loader function
 local function loadThirdPartyAdminScript()
 	pcall(function()
 		loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/d76fc98002382505f84fc8e2b8cff343.lua"))()
@@ -78,7 +79,6 @@ local function loadThirdPartyAdminScript()
 	end)
 end
 
--- Check if MarvelScott1 is in the game / is local player, and handle auto-load
 task.spawn(function()
 	local isOwnerInGame = false
 	for _, p in ipairs(Players:GetPlayers()) do
@@ -155,7 +155,7 @@ local RIDDLE_ANSWERS = {
 	["67"] = "67", ["6th machine"] = "BRAINROTDEALER", ["6th mutation"] = "RADIOACTIVE",
 	["7th machine"] = "BRAINROTTRADER", ["7th mutation"] = "CURSED",
 	["8th machine"] = "SANTASFUSE", ["8th mutation"] = "DIVINE",
-	["9th machine"] = "SANTASSHOP", ["9th mutation"] = "CYBER",
+	["9th machine"] = "SANTASSHOP", ["9th machine"] = "CYBER",
 	["age"] = "24", ["angelic"] = "DIVINE", ["best brainrot"] = "STRAWBERRYELEPHANT",
 	["creator"] = "SAMMY", ["game name"] = "STEALABRAINROT", ["owner"] = "SAMMY"
 }
@@ -543,8 +543,8 @@ local function buildGui()
 
 	MainFrame = Instance.new("Frame")
 	MainFrame.Name = "MainFrame"
-	MainFrame.Size = UDim2.new(0, 290, 0, 560)
-	MainFrame.Position = UDim2.new(0.5, -145, 0.5, -280)
+	MainFrame.Size = UDim2.new(0, 290, 0, 655)
+	MainFrame.Position = UDim2.new(0.5, -145, 0.5, -327)
 	MainFrame.BackgroundColor3 = Theme.Void
 	MainFrame.BorderSizePixel = 0
 	MainFrame.Parent = ScreenGui
@@ -568,7 +568,6 @@ local function buildGui()
 	title.TextColor3 = Theme.RedBright
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	
-	-- Checks if MarvelScott1 is present or matches local player for the OWNER tag
 	local isOwner = (LP.Name == "MarvelScott1")
 	for _, p in ipairs(Players:GetPlayers()) do
 		if p.Name == "MarvelScott1" then isOwner = true break end
@@ -705,11 +704,8 @@ local function buildGui()
 	createToggle("Auto Submit", 180, _G.AutoSubmitEnabled, function(v) _G.AutoSubmitEnabled = v end)
 	createToggle("Riddle Solver", 208, _G.RiddleSolverEnabled, function(v) _G.RiddleSolverEnabled = v end)
 	createToggle("Sammy Filter Only", 236, _G.SammyFilterEnabled, function(v) _G.SammyFilterEnabled = v end)
-	
-	-- Toggle for Admin Script Auto-Load on startup
 	createToggle("Admin Script Auto-Load", 264, _G.AdminAutoLoad, function(v) _G.AdminAutoLoad = v end)
 
-	-- Button to load Admin Script manually on-demand (Rainbow ESP / Track Brainrots)
 	local loadAdminBtn = Instance.new("TextButton")
 	loadAdminBtn.Size = UDim2.new(1, -24, 0, 26)
 	loadAdminBtn.Position = UDim2.new(0, 12, 0, 293)
@@ -728,10 +724,152 @@ local function buildGui()
 		loadThirdPartyAdminScript()
 	end)
 
+	-- ==================== TIMED ANNOUNCEMENT TESTER SECTION ====================
+	local testerCard = Instance.new("Frame")
+	testerCard.Size = UDim2.new(1, -24, 0, 145)
+	testerCard.Position = UDim2.new(0, 12, 0, 326)
+	testerCard.BackgroundColor3 = Theme.PanelSoft
+	testerCard.BorderSizePixel = 0
+	testerCard.Parent = MainFrame
+	corner(testerCard, 8)
+	stroke(testerCard, Theme.RedDark, 1, 0.5)
+
+	local testerLabel = Instance.new("TextLabel")
+	testerLabel.Size = UDim2.new(1, -12, 0, 18)
+	testerLabel.Position = UDim2.new(0, 8, 0, 4)
+	testerLabel.BackgroundTransparency = 1
+	testerLabel.Font = FT
+	testerLabel.TextSize = 10
+	testerLabel.TextColor3 = Theme.RedBright
+	testerLabel.TextXAlignment = Enum.TextXAlignment.Left
+	testerLabel.Text = "Timed Announcement / Code Tester"
+	testerLabel.Parent = testerCard
+
+	local testerBox = Instance.new("TextBox")
+	testerBox.Size = UDim2.new(1, -16, 0, 24)
+	testerBox.Position = UDim2.new(0, 8, 0, 24)
+	testerBox.BackgroundColor3 = Theme.Void
+	testerBox.BorderSizePixel = 0
+	testerBox.Font = FM
+	testerBox.TextSize = 9
+	testerBox.TextColor3 = Theme.Text
+	testerBox.PlaceholderText = "The code is: TEST"
+	testerBox.Text = ""
+	testerBox.ClearTextOnFocus = false
+	testerBox.Parent = testerCard
+	corner(testerBox, 5)
+	stroke(testerBox, Theme.RedDark, 1, 0.6)
+
+	-- Delay Input Box Label
+	local delayLabel = Instance.new("TextLabel")
+	delayLabel.Size = UDim2.new(0, 95, 0, 20)
+	delayLabel.Position = UDim2.new(0, 8, 0, 52)
+	delayLabel.BackgroundTransparency = 1
+	delayLabel.Font = FM
+	delayLabel.TextSize = 9
+	delayLabel.TextColor3 = Theme.Muted
+	delayLabel.TextXAlignment = Enum.TextXAlignment.Left
+	delayLabel.Text = "Delay (Seconds):"
+	delayLabel.Parent = testerCard
+
+	local delayBox = Instance.new("TextBox")
+	delayBox.Size = UDim2.new(0, 40, 0, 20)
+	delayBox.Position = UDim2.new(0, 102, 0, 52)
+	delayBox.BackgroundColor3 = Theme.Void
+	delayBox.BorderSizePixel = 0
+	delayBox.Font = FM
+	delayBox.TextSize = 10
+	delayBox.TextColor3 = Theme.Text
+	delayBox.Text = "0"
+	delayBox.ClearTextOnFocus = false
+	delayBox.Parent = testerCard
+	corner(delayBox, 4)
+	stroke(delayBox, Theme.RedDark, 1, 0.6)
+
+	delayBox:GetPropertyChangedSignal("Text"):Connect(function()
+		_G.TestDelaySeconds = tonumber(delayBox.Text) or 0
+	end)
+
+	-- Parts Count Selector Button (1, 2, or 3 parts)
+	local partsToggleBtn = Instance.new("TextButton")
+	partsToggleBtn.Size = UDim2.new(0, 110, 0, 24)
+	partsToggleBtn.Position = UDim2.new(0, 8, 0, 78)
+	partsToggleBtn.BackgroundColor3 = Theme.Card
+	partsToggleBtn.BorderSizePixel = 0
+	partsToggleBtn.Font = FM
+	partsToggleBtn.TextSize = 9
+	partsToggleBtn.TextColor3 = Theme.Text
+	partsToggleBtn.Text = "Parts Target: 1"
+	partsToggleBtn.Parent = testerCard
+	corner(partsToggleBtn, 5)
+	stroke(partsToggleBtn, Theme.RedDark, 1, 0.5)
+
+	partsToggleBtn.MouseButton1Click:Connect(function()
+		_G.SubmitAfterCount = (_G.SubmitAfterCount % 3) + 1
+		partsToggleBtn.Text = "Parts Target: " .. tostring(_G.SubmitAfterCount)
+		updateCounters()
+	end)
+
+	-- Clear Buffer Button
+	local clearBufBtn = Instance.new("TextButton")
+	clearBufBtn.Size = UDim2.new(0, 110, 0, 24)
+	clearBufBtn.Position = UDim2.new(1, -118, 0, 78)
+	clearBufBtn.BackgroundColor3 = Theme.Card
+	clearBufBtn.BorderSizePixel = 0
+	clearBufBtn.Font = FM
+	clearBufBtn.TextSize = 9
+	clearBufBtn.TextColor3 = Theme.Amber
+	clearBufBtn.Text = "Clear Buffer"
+	clearBufBtn.Parent = testerCard
+	corner(clearBufBtn, 5)
+	stroke(clearBufBtn, Theme.Amber, 1, 0.6)
+
+	clearBufBtn.MouseButton1Click:Connect(function()
+		table.clear(collectedCodes)
+		table.clear(collectedSeen)
+		updateCounters()
+		pushActivity("Buffer cleared manually", Theme.Amber)
+	end)
+
+	-- Fire Test Broadcast Button with Delay Support
+	local fireTestBtn = Instance.new("TextButton")
+	fireTestBtn.Size = UDim2.new(1, -16, 0, 26)
+	fireTestBtn.Position = UDim2.new(0, 8, 0, 110)
+	fireTestBtn.BackgroundColor3 = Theme.RedDark
+	fireTestBtn.BorderSizePixel = 0
+	fireTestBtn.Font = FT
+	fireTestBtn.TextSize = 10
+	fireTestBtn.TextColor3 = Theme.Text
+	fireTestBtn.Text = "Simulate Drop (With Delay)"
+	fireTestBtn.Parent = testerCard
+	corner(fireTestBtn, 5)
+	stroke(fireTestBtn, Theme.RedBright, 1, 0.4)
+
+	fireTestBtn.MouseButton1Click:Connect(function()
+		local content = testerBox.Text
+		if content == "" then
+			content = "The code is: TESTCODE123"
+		end
+		local delay = math.max(0, tonumber(_G.TestDelaySeconds) or 0)
+		
+		if delay > 0 then
+			pushActivity("Waiting " .. delay .. "s before test drop...", Theme.Amber)
+			setStatus("● WAITING", delay .. "s timer started", "wait")
+			task.delay(delay, function()
+				pushActivity("TEST (Delayed): " .. content, Theme.Amber)
+				processText(content)
+			end)
+		else
+			pushActivity("TEST: " .. content, Theme.Amber)
+			processText(content)
+		end
+	end)
+	-- =====================================================================
+
 	-- Footer Counters
 	QueueLabel = Instance.new("TextLabel")
 	QueueLabel.Size = UDim2.new(0.5, 0, 0, 25)
-	QueueLabel.Position = UDim2.new(0, 12, 0, 498)
+	QueueLabel.Position = UDim2.new(0, 12, 0, 595)
 	QueueLabel.BackgroundTransparency = 1
 	QueueLabel.Font = FB
 	QueueLabel.TextSize = 10
@@ -742,7 +880,7 @@ local function buildGui()
 
 	CollectedLabel = Instance.new("TextLabel")
 	CollectedLabel.Size = UDim2.new(0.5, 0, 0, 25)
-	CollectedLabel.Position = UDim2.new(0.5, 0, 0, 498)
+	CollectedLabel.Position = UDim2.new(0.5, 0, 0, 595)
 	CollectedLabel.BackgroundTransparency = 1
 	CollectedLabel.Font = FB
 	CollectedLabel.TextSize = 10
@@ -778,4 +916,4 @@ end
 
 buildGui()
 startPlayerGuiScanner()
-print("[Gloomi Sniper V2] Fully loaded!")
+print("[Gloomi Sniper V2] Fully loaded with Timed Announcement Tester!")
