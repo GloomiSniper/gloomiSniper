@@ -1,0 +1,610 @@
+-- GLOOMI VISUALS (Custom UI Built from Scratch)
+-- made open source at discord.gg/gloomi
+
+local Players           = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui           = game:GetService("CoreGui")
+local TweenService      = game:GetService("TweenService")
+local localPlayer       = Players.LocalPlayer
+
+-------------------------------------------------
+-- 0. CUSTOM UI LIBRARY (DEMON RED THEME)
+-------------------------------------------------
+
+local CustomUI = {}
+
+function CustomUI.New(titleText)
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "GloomiVisualsGui"
+	screenGui.ResetOnSpawn = false
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	
+	-- Safely parent to CoreGui if possible, else PlayerGui
+	local success = pcall(function()
+		screenGui.Parent = CoreGui
+	end)
+	if not success then
+		screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+	end
+
+	-- Main Frame
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Name = "MainFrame"
+	mainFrame.Size = UDim2.new(0, 460, 0, 320)
+	mainFrame.Position = UDim2.new(0.5, -230, 0.5, -160)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Active = true
+	mainFrame.Draggable = true
+	mainFrame.Parent = screenGui
+
+	local mainCorner = Instance.new("UICorner")
+	mainCorner.CornerRadius = UDim.new(0, 8)
+	mainCorner.Parent = mainFrame
+
+	local mainStroke = Instance.new("UIStroke")
+	mainStroke.Color = Color3.fromRGB(139, 0, 0) -- Demon Red
+	mainStroke.Thickness = 1.5
+	mainStroke.Parent = mainFrame
+
+	-- Top Bar
+	local topBar = Instance.new("Frame")
+	topBar.Name = "TopBar"
+	topBar.Size = UDim2.new(1, 0, 0, 35)
+	topBar.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+	topBar.BorderSizePixel = 0
+	topBar.Parent = mainFrame
+
+	local topCorner = Instance.new("UICorner")
+	topCorner.CornerRadius = UDim.new(0, 8)
+	topCorner.Parent = topBar
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -20, 1, 0)
+	title.Position = UDim2.new(0, 12, 0, 0)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.GothamBold
+	title.Text = titleText
+	title.TextColor3 = Color3.fromRGB(220, 50, 50)
+	title.TextSize = 14
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Parent = topBar
+
+	-- Tabs Header Container
+	local tabHeader = Instance.new("Frame")
+	tabHeader.Name = "TabHeader"
+	tabHeader.Size = UDim2.new(1, -20, 0, 30)
+	tabHeader.Position = UDim2.new(0, 10, 0, 45)
+	tabHeader.BackgroundTransparency = 1
+	tabHeader.Parent = mainFrame
+
+	local tabLayout = Instance.new("UIListLayout")
+	tabLayout.FillDirection = Enum.FillDirection.Horizontal
+	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	tabLayout.Padding = UDim.new(0, 6)
+	tabLayout.Parent = tabHeader
+
+	-- Content Area Container
+	local contentContainer = Instance.new("Frame")
+	contentContainer.Name = "ContentContainer"
+	contentContainer.Size = UDim2.new(1, -20, 1, -85)
+	contentContainer.Position = UDim2.new(0, 10, 0, 80)
+	contentContainer.BackgroundTransparency = 1
+	contentContainer.Parent = mainFrame
+
+	local tabs = {}
+	local tabButtons = {}
+	local currentActiveTab = nil
+
+	local function SwitchTab(tabName)
+		for name, container in pairs(tabs) do
+			container.Visible = (name == tabName)
+		end
+		for name, btn in pairs(tabButtons) do
+			if name == tabName then
+				btn.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+				btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			else
+				btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+				btn.TextColor3 = Color3.fromRGB(150, 150, 150)
+			end
+		end
+	end
+
+	function CustomUI.AddTab(name)
+		-- Tab Content Window
+		local scroll = Instance.new("ScrollingFrame")
+		scroll.Name = name .. "Tab"
+		scroll.Size = UDim2.new(1, 0, 1, 0)
+		scroll.BackgroundTransparency = 1
+		scroll.BorderSizePixel = 0
+		scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+		scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		scroll.ScrollBarThickness = 4
+		scroll.ScrollBarImageColor3 = Color3.fromRGB(139, 0, 0)
+		scroll.Visible = false
+		scroll.Parent = contentContainer
+
+		local list = Instance.new("UIListLayout")
+		list.SortOrder = Enum.SortOrder.LayoutOrder
+		list.Padding = UDim.new(0, 6)
+		list.Parent = scroll
+
+		local padding = Instance.new("UIPadding")
+		padding.PaddingTop = UDim.new(0, 2)
+		padding.PaddingBottom = UDim.new(0, 5)
+		padding.PaddingRight = UDim.new(0, 5)
+		padding.PaddingLeft = UDim.new(0, 2)
+		padding.Parent = scroll
+
+		tabs[name] = scroll
+
+		-- Tab Switcher Button
+		local btn = Instance.new("TextButton")
+		btn.Name = name .. "Btn"
+		btn.Size = UDim2.new(0, 130, 1, 0)
+		btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+		btn.Font = Enum.Font.GothamSemibold
+		btn.Text = name
+		btn.TextColor3 = Color3.fromRGB(150, 150, 150)
+		btn.TextSize = 12
+		btn.AutoButtonColor = false
+		btn.Parent = tabHeader
+
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 6)
+		btnCorner.Parent = btn
+
+		btn.MouseButton1Click:Connect(function()
+			SwitchTab(name)
+		end)
+
+		tabButtons[name] = btn
+
+		if not currentActiveTab then
+			currentActiveTab = name
+			SwitchTab(name)
+		end
+
+		return scroll
+	end
+
+	return CustomUI
+end
+
+-------------------------------------------------
+-- 1. BUILD GUI STRUCTURE
+-------------------------------------------------
+
+local ui = CustomUI.New("GLOOMI VISUALS")
+local tab1of1      = ui.AddTab("ONE OF ONE")
+local tabSignature = ui.AddTab("SIGNATURE")
+local tabOther     = ui.AddTab("OTHER")
+
+-------------------------------------------------
+-- 2. BRAINROTCARD 1OF1 HOOKS
+-------------------------------------------------
+
+local forcedOneOfOne = {}
+
+local BrainrotCard = ReplicatedStorage:FindFirstChild("Shared")
+	and ReplicatedStorage.Shared:FindFirstChild("BrainrotCard")
+	and require(ReplicatedStorage.Shared.BrainrotCard)
+
+if BrainrotCard then
+	local oldIsOneOfOne
+	oldIsOneOfOne = hookfunction(BrainrotCard.IsOneOfOne, function(record)
+		if forcedOneOfOne[record.Index] then return true end
+		return oldIsOneOfOne(record)
+	end)
+	local oldObserve
+	oldObserve = hookfunction(BrainrotCard.ObserveOneOfOne, function(record, callback)
+		return oldObserve(record, function(value)
+			if forcedOneOfOne[record.Index] then callback(true) else callback(value) end
+		end)
+	end)
+else
+	warn("[GloomiVisuals] BrainrotCard not found – card hooks skipped.")
+end
+
+-------------------------------------------------
+-- 3. SHARED: findPodiums + matchDebris
+-------------------------------------------------
+
+local function findPodiums()
+	local Plots = workspace:FindFirstChild("Plots")
+	if not Plots then return nil end
+	for _, plot in pairs(Plots:GetChildren()) do
+		local lbl = plot:FindFirstChild("PlotSign")
+			and plot.PlotSign:FindFirstChild("SurfaceGui")
+			and plot.PlotSign.SurfaceGui:FindFirstChild("Frame")
+			and plot.PlotSign.SurfaceGui.Frame:FindFirstChild("TextLabel")
+		if lbl and lbl.Text == localPlayer.DisplayName .. "'s Base" then
+			return plot:FindFirstChild("AnimalPodiums")
+		end
+	end
+	return nil
+end
+
+local function matchPodiums(animalPodiums)
+	local sorted = animalPodiums:GetChildren()
+	table.sort(sorted, function(a, b) return tonumber(a.Name) < tonumber(b.Name) end)
+
+	local debrisItems = {}
+	for _, item in ipairs(workspace.Debris:GetChildren()) do
+		local overhead = item:FindFirstChild("AnimalOverhead")
+		if overhead then
+			local dName = overhead:FindFirstChild("DisplayName")
+			local gen   = overhead:FindFirstChild("Generation")
+			local motor = item:FindFirstChildWhichIsA("Motor6D")
+			if dName and gen and motor and motor.Part1 then
+				table.insert(debrisItems, {
+					position = motor.Part1.Position,
+					name     = dName.Text,
+					gen      = gen.Text,
+					overhead = overhead,
+				})
+			end
+		end
+	end
+
+	local matched   = {}
+	local usedItems = {}
+
+	for _, podium in ipairs(sorted) do
+		local base  = podium:FindFirstChild("Base")
+		local spawn = base and base:FindFirstChild("Spawn")
+		if not (spawn and spawn:FindFirstChild("Attachment")) then continue end
+
+		local attachPos = spawn.Position
+		local nearest, nearestDist, nearestIdx = nil, math.huge, nil
+
+		for i, item in ipairs(debrisItems) do
+			if not usedItems[i] then
+				local d = (item.position - attachPos).Magnitude
+				if d < nearestDist then
+					nearestDist = d
+					nearest     = item
+					nearestIdx  = i
+				end
+			end
+		end
+
+		if nearest then
+			usedItems[nearestIdx] = true
+			table.insert(matched, {
+				podiumName = podium.Name,
+				name       = nearest.name,
+				gen        = nearest.gen,
+				overhead   = nearest.overhead,
+				occupied   = true,
+			})
+		else
+			table.insert(matched, { podiumName = podium.Name, occupied = false })
+		end
+	end
+
+	return matched
+end
+
+-------------------------------------------------
+-- 4. UI COMPONENT HELPERS (Paragraph, Toggle, etc)
+-------------------------------------------------
+
+local function CreateParagraph(parent, text)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 0, 30)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.Gotham
+	label.Text = text
+	label.TextColor3 = Color3.fromRGB(170, 170, 170)
+	label.TextSize = 12
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = parent
+	return label
+end
+
+local function CreateToggle(parent, labelText, defaultState, callback)
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(1, 0, 0, 34)
+	container.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+	container.BorderSizePixel = 0
+	container.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 6)
+	corner.Parent = container
+
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(1, -50, 1, 0)
+	text.Position = UDim2.new(0, 10, 0, 0)
+	text.BackgroundTransparency = 1
+	text.Font = Enum.Font.GothamSemibold
+	text.Text = labelText
+	text.TextColor3 = Color3.fromRGB(210, 210, 210)
+	text.TextSize = 11
+	text.TextXAlignment = Enum.TextXAlignment.Left
+	text.Parent = container
+
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Size = UDim2.new(0, 36, 0, 18)
+	toggleBtn.Position = UDim2.new(1, -44, 0.5, -9)
+	toggleBtn.BackgroundColor3 = defaultState and Color3.fromRGB(139, 0, 0) or Color3.fromRGB(40, 40, 40)
+	toggleBtn.Text = ""
+	toggleBtn.AutoButtonColor = false
+	toggleBtn.Parent = container
+
+	local tCorner = Instance.new("UICorner")
+	tCorner.CornerRadius = UDim.new(1, 0)
+	tCorner.Parent = toggleBtn
+
+	local circle = Instance.new("Frame")
+	circle.Size = UDim2.new(0, 14, 0, 14)
+	circle.Position = defaultState and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+	circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	circle.BorderSizePixel = 0
+	circle.Parent = toggleBtn
+
+	local cCorner = Instance.new("UICorner")
+	cCorner.CornerRadius = UDim.new(1, 0)
+	cCorner.Parent = circle
+
+	local active = defaultState
+	toggleBtn.MouseButton1Click:Connect(function()
+		active = not active
+		local targetColor = active and Color3.fromRGB(139, 0, 0) or Color3.fromRGB(40, 40, 40)
+		local targetPos = active and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+		
+		TweenService:Create(toggleBtn, TweenInfo.new(0.15), {BackgroundColor3 = targetColor}):Play()
+		TweenService:Create(circle, TweenInfo.new(0.15), {Position = targetPos}):Play()
+		
+		callback(active)
+	end)
+
+	return container
+end
+
+-------------------------------------------------
+-- 5. TAB 1 — 1OF1
+-------------------------------------------------
+
+local status1of1 = CreateParagraph(tab1of1, "Waiting for your plot…")
+local toggles1of1 = {}
+
+local function clearToggles1of1()
+	for _, t in ipairs(toggles1of1) do t:Destroy() end
+	table.clear(toggles1of1)
+end
+
+local function scan1of1()
+	clearToggles1of1()
+	status1of1.Visible = false
+
+	local animalPodiums = findPodiums()
+	if not animalPodiums then
+		status1of1.Text = "Waiting for your plot…"
+		status1of1.Visible = true
+		return
+	end
+
+	local matched = matchPodiums(animalPodiums)
+	if #matched == 0 then
+		status1of1.Text = "No brainrots found in your plot."
+		status1of1.Visible = true
+		return
+	end
+
+	for _, m in ipairs(matched) do
+		local label        = m.occupied and string.format("%s  |  %s", m.name, m.gen) or string.format("[%s] Empty", m.podiumName)
+		local initialState = m.occupied and forcedOneOfOne[m.name] == true or false
+		local animalName   = m.occupied and m.name     or nil
+		local overhead     = m.occupied and m.overhead or nil
+
+		local toggle = CreateToggle(tab1of1, label, initialState, function(on)
+			if not animalName then return end
+			local banner = overhead and overhead.Parent and overhead:FindFirstChild("1OF1Banner")
+			if on then
+				forcedOneOfOne[animalName] = true
+				if banner then banner.Visible = true end
+			else
+				forcedOneOfOne[animalName] = nil
+				if banner then banner.Visible = false end
+			end
+		end)
+
+		if not m.occupied then
+			toggle.BackgroundTransparency = 0.6
+		end
+
+		table.insert(toggles1of1, toggle)
+	end
+end
+
+-------------------------------------------------
+-- 6. TAB 2 — SIGNATURE
+-------------------------------------------------
+
+local signatureText  = "signature by lebron james"
+local signatureColor = Color3.fromRGB(139, 0, 0) -- Demon Red
+local signatureClones = {}
+
+local function findDisplayLabel(overhead)
+	for _, obj in ipairs(game:GetDescendants()) do
+		if obj.Name == "DisplayName"
+			and obj:IsA("TextLabel")
+			and obj.Parent and obj.Parent.Name == "AnimalOverhead"
+			and obj.Parent == overhead
+			and obj.Parent.Parent and obj.Parent.Parent.Name == "FastOverheadTemplate"
+			and obj.Parent.Parent.Parent and obj.Parent.Parent.Parent.Name == "Debris"
+			and obj.Parent.Parent.Parent.Parent == workspace
+		then
+			return obj
+		end
+	end
+	return nil
+end
+
+local function applySignature(animalName, overhead)
+	if signatureClones[animalName] then
+		signatureClones[animalName]:Destroy()
+		signatureClones[animalName] = nil
+	end
+
+	local obj = findDisplayLabel(overhead)
+	if not obj then return end
+
+	local clone = obj:Clone()
+	clone.Text       = signatureText
+	clone.TextColor3 = signatureColor
+	clone.Position   = obj.Position + UDim2.new(0, 0, 0, obj.AbsoluteSize.Y)
+	clone.Parent     = obj.Parent
+
+	signatureClones[animalName] = clone
+end
+
+local function removeSignature(animalName)
+	if signatureClones[animalName] then
+		signatureClones[animalName]:Destroy()
+		signatureClones[animalName] = nil
+	end
+end
+
+local function refreshClones()
+	for _, clone in pairs(signatureClones) do
+		if clone and clone.Parent then
+			clone.Text       = signatureText
+			clone.TextColor3 = signatureColor
+		end
+	end
+end
+
+local statusSig = CreateParagraph(tabSignature, "Waiting for your plot…")
+local togglesSig = {}
+
+-- Text Input Control for Signature Text
+local inputContainer = Instance.new("Frame")
+inputContainer.Size = UDim2.new(1, 0, 0, 34)
+inputContainer.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+inputContainer.BorderSizePixel = 0
+inputContainer.Parent = tabSignature
+
+local iCorner = Instance.new("UICorner")
+iCorner.CornerRadius = UDim.new(0, 6)
+iCorner.Parent = inputContainer
+
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(1, -16, 1, 0)
+textBox.Position = UDim2.new(0, 8, 0, 0)
+textBox.BackgroundTransparency = 1
+textBox.Font = Enum.Font.Gotham
+textBox.Text = signatureText
+textBox.PlaceholderText = "Enter signature text..."
+textBox.TextColor3 = Color3.fromRGB(220, 220, 220)
+textBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
+textBox.TextSize = 11
+textBox.TextXAlignment = Enum.TextXAlignment.Left
+textBox.Parent = inputContainer
+
+textBox.FocusLost:Connect(function(enterPressed)
+	signatureText = (textBox.Text ~= "" and textBox.Text or "signature by lebron james")
+	refreshClones()
+end)
+
+local function clearTogglesSig()
+	for _, t in ipairs(togglesSig) do t:Destroy() end
+	table.clear(togglesSig)
+end
+
+local function scanSignature()
+	clearTogglesSig()
+	statusSig.Visible = false
+
+	local animalPodiums = findPodiums()
+	if not animalPodiums then
+		statusSig.Text = "Waiting for your plot…"
+		statusSig.Visible = true
+		return
+	end
+
+	local matched = matchPodiums(animalPodiums)
+	if #matched == 0 then
+		statusSig.Text = "No brainrots found in your plot."
+		statusSig.Visible = true
+		return
+	end
+
+	for _, m in ipairs(matched) do
+		local label        = m.occupied and string.format("%s | %s", m.name, m.gen) or string.format("[%s] Empty", m.podiumName)
+		local initialState = m.occupied and signatureClones[m.name] ~= nil or false
+		local animalName   = m.occupied and m.name     or nil
+		local overhead     = m.occupied and m.overhead or nil
+
+		local toggle = CreateToggle(tabSignature, label, initialState, function(on)
+			if not animalName then return end
+			if on then
+				applySignature(animalName, overhead)
+			else
+				removeSignature(animalName)
+			end
+		end)
+
+		if not m.occupied then
+			toggle.BackgroundTransparency = 0.6
+		end
+
+		table.insert(togglesSig, toggle)
+	end
+end
+
+-------------------------------------------------
+-- 7. TAB 3 — OTHER
+-------------------------------------------------
+
+local btnContainer = Instance.new("TextButton")
+btnContainer.Size = UDim2.new(1, 0, 0, 36)
+btnContainer.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+btnContainer.Font = Enum.Font.GothamBold
+btnContainer.Text = "Run Ap Gift"
+btnContainer.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnContainer.TextSize = 12
+btnContainer.AutoButtonColor = false
+btnContainer.Parent = tabOther
+
+local bCorner = Instance.new("UICorner")
+bCorner.CornerRadius = UDim.new(0, 6)
+bCorner.Parent = btnContainer
+
+btnContainer.MouseButton1Click:Connect(function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/blookzz/gloomi/refs/heads/main/visual_ap.lua"))()
+end)
+
+-------------------------------------------------
+-- 8. AUTO-SCAN & WATCHERS
+-------------------------------------------------
+
+local scanPending = false
+local function scheduleScans()
+	if scanPending then return end
+	scanPending = true
+	task.delay(0.6, function()
+		scanPending = false
+		scan1of1()
+		scanSignature()
+	end)
+end
+
+task.spawn(function()
+	while not findPodiums() do task.wait(1) end
+	scan1of1()
+	scanSignature()
+end)
+
+local Debris = workspace:WaitForChild("Debris")
+Debris.ChildAdded:Connect(function(child)
+	task.defer(function()
+		if child:FindFirstChild("AnimalOverhead") then scheduleScans() end
+	end)
+end)
+Debris.ChildRemoved:Connect(function(child)
+	if child:FindFirstChild("AnimalOverhead") then scheduleScans() end
+end)
